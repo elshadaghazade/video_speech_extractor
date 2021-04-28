@@ -1,0 +1,7 @@
+node_modules
+.py3
+proxy_service
+yarn*
+npm*
+build
+aws_server

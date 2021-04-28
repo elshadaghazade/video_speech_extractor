@@ -1,0 +1,13 @@
+FROM ubuntu
+WORKDIR /app
+RUN apt update
+RUN apt install -y nodejs
+RUN apt install -y npm
+RUN apt install -y wget
+RUN npm install -g n
+RUN n latest
+COPY ./proxy_service/package.json .
+RUN npm install -g yarn
+RUN yarn install
+COPY ./proxy_service/index.js .
+CMD [ "node", "./index.js" ]

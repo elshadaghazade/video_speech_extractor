@@ -1,0 +1,12 @@
+header {
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+    flex-direction: column;
+}
+
+header .link {
+    text-decoration: none;
+    display: inline-block;
+    margin: 20px;
+}

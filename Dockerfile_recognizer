@@ -1,0 +1,9 @@
+FROM ubuntu:latest
+WORKDIR /app
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt update
+RUN apt install -y python3-pip ffmpeg
+COPY ./text_extractor_service/requirements.txt .
+RUN pip3 install -r requirements.txt
+COPY ./text_extractor_service/ .
+CMD [ "./speech_recognition" ]

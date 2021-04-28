@@ -1,0 +1,50 @@
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.text-left {
+  justify-content: flex-start;
+}
+
+.text-center {
+  justify-content: center;
+}
+
+.text-right {
+  justify-content: flex-right;
+}
+
+.btn {
+  padding: 10px;
+  border: none;
+  background: crimson;
+  color: #fff;
+  font-weight: bold;
+  margin: 10px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.container {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.transcript-item label {
+  font-weight: bold;
+  margin: 20px 0 5px 0;
+}
+
+.link {
+  background: none;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-weight: bold;
+  margin-bottom: 10px;
+}

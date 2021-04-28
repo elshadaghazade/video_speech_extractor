@@ -1,0 +1,148 @@
+#!/bin/python3
+
+import  gridfs, subprocess, os, shutil, subprocess, pika, time
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+import speech_recognition as sr
+from pydub import AudioSegment
+from pydub.silence import split_on_silence
+
+
+mongoClient = MongoClient('mongodb://elshad:123456@mongo:27017/')
+db = mongoClient.video_transcript_generator
+fs = gridfs.GridFSBucket(db, bucket_name='videos')
+fs2 = gridfs.GridFS(db, collection='videos')
+
+VIDEO_FILE = "/tmp/video.mp4"
+AUDIO_FILE = "/tmp/transcript.wav"
+CHUNK_FOLDER_NAME = "/tmp/chunks"
+        
+
+def get_large_audio_transcription(video, VIDEO_FILE, AUDIO_FILE):
+    """
+    Splitting the large audio file into chunks
+    and apply speech recognition on each of these chunks
+    """
+
+    if db.transcripts.find_one({'md5': video.md5}) is not None:
+        print("video already recognized. skipped.")
+        return
+
+    if not os.path.exists(VIDEO_FILE):
+        print("video is not exist")
+        return
+
+    if os.path.exists(AUDIO_FILE):
+        os.remove(AUDIO_FILE)
+    
+    subprocess.call(f'ffmpeg -i {VIDEO_FILE} {AUDIO_FILE}', shell=True)
+
+    if os.path.exists(VIDEO_FILE):
+        os.remove(VIDEO_FILE)
+
+    # create a speech recognition object
+    r = sr.Recognizer()
+    # open the audio file using pydub
+    sound = AudioSegment.from_wav(AUDIO_FILE)  
+    # split audio sound where silence is 700 miliseconds or more and get chunks
+    chunks = split_on_silence(sound,
+        # experiment with this value for your target audio file
+        min_silence_len = 500,
+        # adjust this per requirement
+        silence_thresh = sound.dBFS-14,
+        # keep the silence for 1 second, adjustable as well
+        keep_silence=500,
+    )
+
+    # create a directory to store the audio chunks
+    if not os.path.isdir(CHUNK_FOLDER_NAME):
+        os.makedirs(CHUNK_FOLDER_NAME)
+    duration = 0
+    transcript = []
+    
+    # process each chunk 
+    for i, audio_chunk in enumerate(chunks, start=1):
+
+        # export audio chunk and save it in
+        # the `CHUNK_FOLDER_NAME` directory.
+        chunk_filename = os.path.join(CHUNK_FOLDER_NAME, f"{video._id}_chunk{i}.wav")
+        audio_chunk.export(chunk_filename, format="wav")
+
+        # recognize the chunk
+        with sr.AudioFile(chunk_filename) as source:
+            audio_listened = r.record(source)
+            # try converting it to text
+            try:
+                speech = r.recognize_google(audio_listened)
+            except sr.UnknownValueError as e:
+                pass
+            else:
+                transcript.append({
+                    'seconds': duration,
+                    'speech': speech
+                })
+            finally:
+                duration += source.DURATION
+                if os.path.exists(chunk_filename):
+                    os.remove(chunk_filename)
+    
+    if len(transcript):
+        db.transcripts.insert_one({
+            'video_id': video._id,
+            'length': video.length,
+            'uploadDate': video.uploadDate,
+            'filename': video.filename,
+            'md5': video.md5,
+            'metadata': video.metadata,
+            'transcript': transcript
+        })
+
+def clear(videoid=None):
+    if os.path.exists(VIDEO_FILE):
+        os.remove(VIDEO_FILE)
+    
+    if os.path.exists(AUDIO_FILE):
+        os.remove(AUDIO_FILE)
+
+    try:
+        if videoid is not None:
+            fs.delete(videoid)
+    except:
+        pass
+
+
+def callback(ch, method, properties, body):
+    videoid = body.decode()
+    videoid = ObjectId(videoid)
+    with open(VIDEO_FILE, 'wb') as f:
+        try:
+            video = fs2.get(videoid)
+            fs.download_to_stream(videoid, f)
+        except:
+            pass
+        else:
+            get_large_audio_transcription(video, VIDEO_FILE, AUDIO_FILE)
+        finally:
+            clear(videoid)
+        
+
+
+def main():
+    connection = pika.BlockingConnection(pika.ConnectionParameters(
+                                                        'rabbitmq', 
+                                                        heartbeat=65535,
+                                                        blocked_connection_timeout=31536000
+                                                        ))
+    channel = connection.channel()
+    channel.queue_declare(queue='vids', durable=True)
+    channel.basic_consume(queue='vids', auto_ack=True, on_message_callback=callback)
+    channel.start_consuming()
+        
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        clear()

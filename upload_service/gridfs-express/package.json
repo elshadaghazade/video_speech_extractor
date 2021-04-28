@@ -1,0 +1,45 @@
+{
+  "name": "gridfs-express",
+  "version": "2.1.0",
+  "description": "node package to mount a gridfs API on an express router",
+  "main": "index.js",
+  "scripts": {
+    "test": "nyc mocha ./test",
+    "lint": "eslint *.js api/** test/**",
+    "preversion": "npm run lint && npm test",
+    "version": "echo 'preversion passed'",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/jorge.suit/gridfs-express.git"
+  },
+  "keywords": [
+    "mongodb",
+    "gridfs",
+    "express"
+  ],
+  "author": "Jorge Suit <josp.jorge@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/jorge.suit/gridfs-express/issues"
+  },
+  "homepage": "https://gitlab.com/jorge.suit/gridfs-express",
+  "devDependencies": {
+    "chakram": "^1.5.0",
+    "eslint": "^4.12.1",
+    "express-list-routes": "^0.1.4",
+    "mocha": "^4.0.1",
+    "nyc": "^11.4.1"
+  },
+  "dependencies": {
+    "boom": "^7.2.0",
+    "dot-object": "^1.7.0",
+    "express": "^4.16.2",
+    "formidable": "^1.2.1",
+    "fs": "0.0.1-security",
+    "mongodb": "^2.2.31",
+    "path": "^0.12.7",
+    "tmp": "0.0.33"
+  }
+}
