@@ -25,3 +25,7 @@ and then open following link in your browser: **http://localhost:3000**
 - [Frontend](./front-end/)
 - [Text Extractor Service](./text_extractor_service/)
 - [Upload Service](./upload_service/)
+
+## DEMO
+
+[![](https://img.youtube.com/vi/OTURI-zoPOw/hqdefault.jpg)](https://www.youtube.com/watch?v=OTURI-zoPOw)
