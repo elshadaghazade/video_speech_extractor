@@ -2,11 +2,12 @@
 
 Video Speech Extractor is a web-based application that allows to extract speech as a text from any type of video.
 
-## TECHNOLOGIES USED
+## TECHNOLOGIES & PLATFORMS
 
+- Ubuntu
 - React.js
 - React Router DOM
-- RabbitMQ message broker
+- RabbitMQ
 - MongoDB
 - MongoDB GridFS
 - Node.js
